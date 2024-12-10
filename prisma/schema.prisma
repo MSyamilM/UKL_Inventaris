@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  username   String    @unique
+  password   String
+  role       Role      // ENUM: ADMIN, TEACHER, STUDENT
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  Borrowings Borrow[]  // Relasi ke model Borrow untuk mencatat peminjaman
+}
+
+model Item {
+  id         Int       @id @default(autoincrement())
+  name       String
+  category String
+  location String
+  quantity   Int
+  status     ItemStatus // ENUM: AVAILABLE, BORROWED, DAMAGED, LOST
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  Borrowings Borrow[]  // Relasi ke model Borrow
+}
+
+model Borrow {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  itemId       Int
+  borrowDate   DateTime
+  returnDate   DateTime?
+  status       BorrowStatus // ENUM: ONGOING, RETURNED, LATE
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  User         User     @relation(fields: [userId], references: [id])
+  Item         Item     @relation(fields: [itemId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum ItemStatus {
+  AVAILABLE
+  BORROWED
+  DAMAGED
+  LOST
+}
+
+enum BorrowStatus {
+  ONGOING
+  RETURNED
+  LATE
+}
